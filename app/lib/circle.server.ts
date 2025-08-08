@@ -13,19 +13,6 @@ import type {
 
 // Async function to initialize the Circle client
 async function initCircleClient(): Promise<CircleDeveloperControlledWalletsClient> {
-  const response = await registerEntitySecretCiphertext({
-    apiKey: serverEnv.CIRCLE_API_KEY!,
-    entitySecret: serverEnv.CIRCLE_SECRET_KEY!,
-  });
-
-  const recoveryFile = response.data?.recoveryFile;
-  if (recoveryFile) {
-    const buffer = Buffer.from(recoveryFile, "utf-8");
-    await put("recovery-file.txt", buffer, {
-      access: "public",
-    });
-  }
-
   return initiateDeveloperControlledWalletsClient({
     apiKey: serverEnv.CIRCLE_API_KEY!,
     entitySecret: serverEnv.CIRCLE_SECRET_KEY!,
