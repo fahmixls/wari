@@ -1,4 +1,4 @@
-import { circleClient, WalletManager } from "@/lib/circle.server";
+import { getCircleClient, WalletManager } from "@/lib/circle.server";
 import type { Blockchain } from "@circle-fin/developer-controlled-wallets";
 import z from "zod";
 import type { Route } from "./+types/create";
@@ -8,7 +8,8 @@ const WalletSchema = z.object({
   blockchains: z.string().min(1, "At least one blockchain is required"),
 });
 
-const walletManager = new WalletManager(circleClient!);
+const client = await getCircleClient();
+const walletManager = new WalletManager(client);
 
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {

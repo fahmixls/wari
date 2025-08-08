@@ -15,33 +15,40 @@ import { randomBytes } from "crypto";
 // Generate the entity secret
 const entitySecret = randomBytes(32).toString("hex");
 
-let circleClient: CircleDeveloperControlledWalletsClient | undefined =
-  undefined;
-
-// Register the entity secret and store the recovery file in Vercel Blob
-registerEntitySecretCiphertext({
-  apiKey: serverEnv.CIRCLE_API_KEY!,
-  entitySecret,
-})
-  .then(async (value) => {
-    const recoveryFile = value.data?.recoveryFile;
-
-    if (recoveryFile) {
-      const buffer = Buffer.from(recoveryFile, "utf-8");
-      put("recovery-file.txt", buffer, {
-        access: "public",
-      });
-    }
-
-    circleClient = initiateDeveloperControlledWalletsClient({
-      apiKey: serverEnv.CIRCLE_API_KEY!,
-      entitySecret,
-    });
-  })
-  .catch((err) => {
-    console.log(err);
+// Async function to initialize the Circle client
+async function initCircleClient(): Promise<CircleDeveloperControlledWalletsClient> {
+  const response = await registerEntitySecretCiphertext({
+    apiKey: serverEnv.CIRCLE_API_KEY!,
+    entitySecret,
   });
 
+  const recoveryFile = response.data?.recoveryFile;
+  if (recoveryFile) {
+    const buffer = Buffer.from(recoveryFile, "utf-8");
+    await put("recovery-file.txt", buffer, {
+      access: "public",
+    });
+  }
+
+  return initiateDeveloperControlledWalletsClient({
+    apiKey: serverEnv.CIRCLE_API_KEY!,
+    entitySecret,
+  });
+}
+
+// Lazy-initialized client
+let circleClientPromise:
+  | Promise<CircleDeveloperControlledWalletsClient>
+  | undefined;
+
+function getCircleClient(): Promise<CircleDeveloperControlledWalletsClient> {
+  if (!circleClientPromise) {
+    circleClientPromise = initCircleClient();
+  }
+  return circleClientPromise;
+}
+
+// WalletManager class
 class WalletManager {
   private client: CircleDeveloperControlledWalletsClient;
 
@@ -99,4 +106,4 @@ class WalletManager {
   }
 }
 
-export { circleClient, WalletManager };
+export { getCircleClient, WalletManager };
