@@ -10,16 +10,12 @@ import type {
   WalletSet,
   Wallet,
 } from "@circle-fin/developer-controlled-wallets";
-import { randomBytes } from "crypto";
-
-// Generate the entity secret
-const entitySecret = randomBytes(32).toString("hex");
 
 // Async function to initialize the Circle client
 async function initCircleClient(): Promise<CircleDeveloperControlledWalletsClient> {
   const response = await registerEntitySecretCiphertext({
     apiKey: serverEnv.CIRCLE_API_KEY!,
-    entitySecret,
+    entitySecret: serverEnv.CIRCLE_SECRET_KEY!,
   });
 
   const recoveryFile = response.data?.recoveryFile;
@@ -32,7 +28,7 @@ async function initCircleClient(): Promise<CircleDeveloperControlledWalletsClien
 
   return initiateDeveloperControlledWalletsClient({
     apiKey: serverEnv.CIRCLE_API_KEY!,
-    entitySecret,
+    entitySecret: serverEnv.CIRCLE_SECRET_KEY!,
   });
 }
 
