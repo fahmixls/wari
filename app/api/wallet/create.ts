@@ -8,13 +8,11 @@ const WalletSchema = z.object({
   blockchains: z.string().min(1, "At least one blockchain is required"),
 });
 
-const client = await getCircleClient();
-const walletManager = new WalletManager(client);
-
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
+
   console.log("Submitting Here");
   const formData = await request.formData();
 
@@ -25,6 +23,9 @@ export async function action({ request }: Route.ActionArgs) {
     };
 
     const parsed = WalletSchema.parse(raw);
+    const client = await getCircleClient();
+    const walletManager = new WalletManager(client);
+
     const { walletSet, wallets } =
       await walletManager.createWalletSetAndWallets(
         [parsed.blockchains as Blockchain],
