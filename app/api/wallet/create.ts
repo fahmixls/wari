@@ -12,8 +12,6 @@ export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
-
-  console.log("Submitting Here");
   const formData = await request.formData();
 
   try {
@@ -40,6 +38,7 @@ export async function action({ request }: Route.ActionArgs) {
       message: "Wallet created successfully!",
     });
   } catch (err) {
+    console.log(err);
     if (err instanceof z.ZodError) {
       return Response.json(
         { success: false, message: "Validation error", errors: err.flatten() },
