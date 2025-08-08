@@ -8,7 +8,7 @@ const WalletSchema = z.object({
   blockchains: z.string().min(1, "At least one blockchain is required"),
 });
 
-const walletManager = new WalletManager(circleClient);
+const walletManager = new WalletManager(circleClient!);
 
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {

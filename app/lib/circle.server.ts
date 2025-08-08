@@ -1,4 +1,8 @@
-import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
+import { put } from "@vercel/blob";
+import {
+  initiateDeveloperControlledWalletsClient,
+  registerEntitySecretCiphertext,
+} from "@circle-fin/developer-controlled-wallets";
 import { serverEnv } from "./env.server";
 import type {
   Blockchain,
@@ -6,13 +10,39 @@ import type {
   WalletSet,
   Wallet,
 } from "@circle-fin/developer-controlled-wallets";
+import { randomBytes } from "crypto";
 
-export const circleClient = initiateDeveloperControlledWalletsClient({
-  apiKey: serverEnv.CIRCLE_API_KEY,
-  entitySecret: serverEnv.CIRCLE_ENTITY_SECRET_CHIPHERTEXT,
-});
+// Generate the entity secret
+const entitySecret = randomBytes(32).toString("hex");
 
-export class WalletManager {
+let circleClient: CircleDeveloperControlledWalletsClient | undefined =
+  undefined;
+
+// Register the entity secret and store the recovery file in Vercel Blob
+registerEntitySecretCiphertext({
+  apiKey: serverEnv.CIRCLE_API_KEY!,
+  entitySecret,
+})
+  .then(async (value) => {
+    const recoveryFile = value.data?.recoveryFile;
+
+    if (recoveryFile) {
+      const buffer = Buffer.from(recoveryFile, "utf-8");
+      put("recovery-file.txt", buffer, {
+        access: "public",
+      });
+    }
+
+    circleClient = initiateDeveloperControlledWalletsClient({
+      apiKey: serverEnv.CIRCLE_API_KEY!,
+      entitySecret,
+    });
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+class WalletManager {
   private client: CircleDeveloperControlledWalletsClient;
 
   constructor(client: CircleDeveloperControlledWalletsClient) {
@@ -68,3 +98,5 @@ export class WalletManager {
     };
   }
 }
+
+export { circleClient, WalletManager };
