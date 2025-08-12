@@ -7,6 +7,8 @@ import {
 
 export default [
   index("pages/home/index.tsx"),
+  route("signin", "pages/auth/signin.tsx"),
+  route("signup", "pages/auth/signup.tsx"),
   ...prefix("api", [
     ...prefix("wallet", [route("create", "api/wallet/create.ts")]),
   ]),
